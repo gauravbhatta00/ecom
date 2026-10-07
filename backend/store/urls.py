@@ -1,0 +1,36 @@
+from django.urls import path
+from . import views
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+urlpatterns = [
+    path('admin/login/', views.admin_login),
+    path('admin/overview/', views.admin_overview),
+    path('admin/orders/', views.admin_orders),
+    path('admin/orders/<int:pk>/', views.admin_update_order),
+    path('admin/customers/', views.admin_customers),
+    path('admin/customers/<int:pk>/', views.admin_update_customer),
+    path('register/', views.register_view),
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('products/', views.get_products),
+    path('products/<int:pk>/', views.get_product),
+    path('categories/', views.get_categories),
+    path('categories/create/', views.create_category),
+    path('categories/<int:pk>/delete/', views.delete_category),
+    path('cart/', views.get_cart),
+    path('cart/add/', views.add_to_cart),
+    path('cart/remove/', views.remove_from_cart),
+    path('cart/update/', views.update_cart_quantity),
+    path('orders/', views.get_orders),
+    path('orders/create/', views.create_order),
+    path('auth/me/', views.get_me),
+    path('auth/profile/', views.update_profile),
+    path('auth/google/', views.google_auth_view),
+    path('auth/password-reset/', views.password_reset_request_view),
+    path('auth/password-reset-confirm/', views.password_reset_confirm_view),
+    path('contact/', views.contact_message_view),
+    path('dashboard/', views.get_dashboard),
+    path('products/create/', views.create_product),
+    path('products/<int:pk>/update/', views.update_product),
+    path('products/<int:pk>/delete/', views.delete_product),
+]
