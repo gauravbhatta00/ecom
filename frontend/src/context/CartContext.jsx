@@ -1,4 +1,5 @@
 import { syncGuestItems } from "../lib/api/cart";
+import { getProduct } from "../lib/api/products";
 import { apiBaseUrl } from '../lib/config';
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { authFetch } from "../utils/auth";
@@ -6,7 +7,7 @@ import { useAuth } from "./AuthContext";
 
 const CartContext = createContext();
 const BASEURL = apiBaseUrl;
-const GUEST_CART_KEY = "guest_cart";
+const GUEST_CART_KEY = process.env.NEXT_PUBLIC_CATALOG_REVISION ? `guest_cart:${process.env.NEXT_PUBLIC_CATALOG_REVISION}` : "guest_cart";
 
 const getGuestCart = () => {
     try {
@@ -48,7 +49,7 @@ export const CartProvider = ({ children }) => {
             setCartItems(guestItems);
             setTotal(calcTotal(guestItems));
             setLoading(false);
-            return;
+            return true;
         }
 
         setLoading(true);
@@ -59,9 +60,11 @@ export const CartProvider = ({ children }) => {
             const data = await res.json();
             setCartItems(data.items || []);
             setTotal(Number(data.total ?? calcTotal(data.items || [])));
+            return true;
         } catch (err) {
             console.error("Error fetching cart:", err);
             setError("Failed to load cart.");
+            return false;
         } finally {
             setLoading(false);
         }
@@ -163,37 +166,47 @@ export const CartProvider = ({ children }) => {
     };
 
     const removeFromCart = async (itemId) => {
+        setError(null);
         if (!isAuthenticated) {
-            const updated = cartItems.filter(
+            const updated = cartRef.current.filter(
                 (item) => Number(item.product_id ?? item.id) !== Number(itemId)
             );
             setCartItems(updated);
             setTotal(calcTotal(updated));
             setGuestCart(updated);
-            return;
+            return true;
         }
 
         try {
-            await authFetch(`${BASEURL}/api/cart/remove/`, {
+            const response = await authFetch(`${BASEURL}/api/cart/remove/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ item_id: itemId }),
             });
-            await fetchCart();
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return await fetchCart();
         } catch (err) {
             console.error("Error removing from cart:", err);
             setError("Failed to remove item.");
+            return false;
         }
     };
 
     const updateQuantity = async (itemId, quantity) => {
+        setError(null);
+        if (!Number.isInteger(quantity)) return false;
         if (quantity < 1) {
-            await removeFromCart(itemId);
-            return;
+            return removeFromCart(itemId);
         }
 
+        const currentItem = cartRef.current.find(item => Number(item.id) === Number(itemId));
+        if (!currentItem) return false;
+        try {
+            const product = await getProduct(String(currentItem.product ?? currentItem.product_id ?? currentItem.id));
+            if (quantity > product.stock) { setError("That quantity is not available."); return false; }
+        } catch { setError("Couldn't check availability. Please try again."); return false; }
         if (!isAuthenticated) {
-            const updated = cartItems.map((item) =>
+            const updated = cartRef.current.map((item) =>
                 Number(item.product_id ?? item.id) === Number(itemId)
                     ? { ...item, quantity }
                     : item
@@ -201,19 +214,21 @@ export const CartProvider = ({ children }) => {
             setCartItems(updated);
             setTotal(calcTotal(updated));
             setGuestCart(updated);
-            return;
+            return true;
         }
 
         try {
-            await authFetch(`${BASEURL}/api/cart/update/`, {
+            const response = await authFetch(`${BASEURL}/api/cart/update/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ item_id: itemId, quantity }),
             });
-            await fetchCart();
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return await fetchCart();
         } catch (err) {
             console.error("Error updating quantity:", err);
             setError("Failed to update quantity.");
+            return false;
         }
     };
 

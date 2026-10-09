@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import catalog_views, checkout_views
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -14,15 +15,17 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('products/', views.get_products),
     path('products/<int:pk>/', views.get_product),
+    path('products/by-slug/<slug:slug>/', views.get_product),
     path('categories/', views.get_categories),
-    path('categories/create/', views.create_category),
-    path('categories/<int:pk>/delete/', views.delete_category),
-    path('cart/', views.get_cart),
-    path('cart/add/', views.add_to_cart),
-    path('cart/remove/', views.remove_from_cart),
-    path('cart/update/', views.update_cart_quantity),
+    path('categories/create/', catalog_views.create_category),
+    path('categories/<int:pk>/update/', catalog_views.update_category),
+    path('categories/<int:pk>/delete/', catalog_views.delete_category),
+    path('cart/', checkout_views.get_cart),
+    path('cart/add/', checkout_views.add_to_cart),
+    path('cart/remove/', checkout_views.remove_from_cart),
+    path('cart/update/', checkout_views.update_cart_quantity),
     path('orders/', views.get_orders),
-    path('orders/create/', views.create_order),
+    path('orders/create/', checkout_views.create_order),
     path('auth/me/', views.get_me),
     path('auth/profile/', views.update_profile),
     path('auth/google/', views.google_auth_view),

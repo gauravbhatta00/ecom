@@ -1,0 +1,11 @@
+import { Link } from "react-router-dom";
+import { ArrowUpRight } from "lucide-react";
+
+const values = [
+  ["01", "An everyday foundation", "Easy tees, expressive shirts, and denim to build an outfit around."],
+  ["02", "A little personality", "Unexpected colour, relaxed shapes, and layers that bring a look together."],
+  ["03", "Your own point of view", "Wear it your way. Mix the familiar with something new, and make it yours."],
+];
+export default function About() {
+  return <main className="page-shell py-14 sm:py-20"><section className="grid items-center gap-10 lg:grid-cols-2 lg:gap-20"><div><p className="eyebrow">The LeloVaiLelo wardrobe</p><h1 className="mt-5 font-display text-5xl leading-tight sm:text-6xl">Good clothes.<br /><span className="italic text-primary">Your kind of everyday.</span></h1><p className="mt-7 max-w-lg text-sm leading-7 text-muted-foreground">Some days call for a crisp shirt. Others, your favourite tee and an easy pair of jeans. We are building a clothing store around those real-life moments.</p><p className="mt-4 max-w-lg text-sm leading-7 text-muted-foreground">Our edit brings together everyday foundations, soft layers, and a little something unexpected. A wardrobe with room for your personality.</p><Link to="/products" className="mt-8 inline-flex min-h-11 items-center gap-3 border-b border-primary text-sm">Explore the clothing edit <ArrowUpRight size={16} /></Link></div><img src="/images/fashion/studio.jpg" alt="A thoughtfully coordinated rail of coats, denim, and knitwear" className="aspect-[4/5] w-full object-cover" /></section><section className="my-16 grid gap-8 border-y border-border py-12 sm:grid-cols-3">{values.map(([number, title, text]) => <article key={number}><p className="font-display text-3xl italic text-primary">{number}</p><h2 className="mt-5 font-display text-2xl">{title}</h2><p className="mt-3 text-sm leading-7 text-muted-foreground">{text}</p></article>)}</section><section className="pb-10 text-center"><p className="eyebrow">Find your next favourite</p><h2 className="mt-4 font-display text-4xl">Getting dressed starts here.</h2><Link to="/products" className="mt-7 inline-flex min-h-12 items-center gap-4 bg-primary px-7 text-sm text-white">Shop the collection <ArrowUpRight size={16} /></Link></section></main>;
+}

@@ -9,12 +9,12 @@ import { HeroSection } from "@/components/home/hero-section";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "LeloVaiLelo — Less ordinary. More you.",
-  description: "Discover thoughtful essentials for the way you live. Explore clothing, accessories, home and everyday finds at LeloVaiLelo.",
+  description: "Discover everyday clothing at LeloVaiLelo. Explore shirts, denim, knitwear, outerwear, dresses, and matching sets.",
   alternates: { canonical: "/" },
   openGraph: {
     title: "LeloVaiLelo — Less ordinary. More you.",
-    description: "Considered pieces for the way you live.",
-    images: [{ url: "/images/everyday-editorial.png", width: 1536, height: 1024, alt: "A considered everyday, by LeloVaiLelo" }],
+    description: "Considered clothing for the way you dress.",
+    images: [{ url: "/images/fashion/campaign.jpg", alt: "A considered everyday, by LeloVaiLelo" }],
   },
 };
 

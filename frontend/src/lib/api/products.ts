@@ -6,9 +6,10 @@ import type { Product, CatalogSource } from "@/types/product";
 const djangoProductSchema = z.object({
   id: z.number().int().positive(),
   name: z.string().min(1),
+  slug: z.string().nullish(),
   description: z.string().nullish(),
   price: z.union([z.string().trim().min(1), z.number()]).pipe(z.coerce.number<string | number>().finite().nonnegative()),
-  category: z.object({ id: z.number(), name: z.string(), slug: z.string() }),
+  category: z.object({ id: z.number(), name: z.string(), slug: z.string(), parent: z.number().nullable().optional(), parent_name: z.string().nullable().optional(), parent_slug: z.string().nullable().optional() }),
   image: z.string().nullish(),
   image_url: z.string().nullish(),
   stock: z.number().int().nonnegative(),
@@ -36,7 +37,7 @@ export function adaptDjangoProduct(input: unknown): Product {
   const image = normalizeProductImage(product.image_url || product.image);
   return {
     id: `live-${product.id}`, backendId: product.id, source: "live",
-    slug: String(product.id), name: product.name,
+    slug: product.slug || String(product.id), name: product.name,
     description: product.description || "", shortDescription: product.description?.slice(0, 120) || "",
     price: product.price, category: product.category, images: image ? [image] : [],
     colors: [], sizes: [], variants: [], stock: product.stock, badges: [],
@@ -49,4 +50,15 @@ export async function getProducts(options: { signal?: AbortSignal; mode?: Catalo
   const data = await apiRequest<unknown>("/api/products/", { signal: options.signal, cache: "no-store" });
   if (!Array.isArray(data)) throw new ApiError("The collection could not be loaded. Please try again.", 502);
   return data.map(adaptDjangoProduct);
+}
+
+export async function getProduct(id: string, signal?: AbortSignal): Promise<Product> {
+  if (catalogMode === "demo") {
+    const product = (await import("@/data/products")).demoProducts.find(item => item.id === id);
+    if (!product) throw new ApiError("Product not found.", 404);
+    return product;
+  }
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) throw new ApiError("Product not found.", 404);
+  const path = /^\d+$/.test(id) ? `/api/products/${id}/` : `/api/products/by-slug/${encodeURIComponent(id)}/`;
+  return adaptDjangoProduct(await apiRequest<unknown>(path, { signal, cache: "no-store" }));
 }

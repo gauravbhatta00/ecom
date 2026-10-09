@@ -24,7 +24,7 @@ export const useWishlistStore = create<WishlistState>()(persist((set) => ({
   })),
   remove: id => set(state => ({ items: state.items.filter(item => item.id !== id) })),
 }), {
-  name: "lelovailelo-wishlist", version: 1,
+  name: `lelovailelo-wishlist${process.env.NEXT_PUBLIC_CATALOG_REVISION ? ":" + process.env.NEXT_PUBLIC_CATALOG_REVISION : ""}`, version: 1,
   storage: createJSONStorage(() => safeLocalStorage), skipHydration: true,
   partialize: state => ({ items: state.items }),
   merge: (persisted, current) => {

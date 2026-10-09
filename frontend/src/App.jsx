@@ -4,29 +4,31 @@ import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-route
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './context/ToastContext';
-import ProductList from "./pages/ProductList";
-import ProductDetails from "./pages/ProductDetails";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
+import ProductList from "./screens/ProductList";
+import ProductDetails from "./screens/ProductDetails";
+import Wishlist from "./screens/Wishlist";
+import About from "./screens/About";
+import Contact from "./screens/Contact";
 import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import CartPage from './pages/CartPage';
-import CheckoutPage from './pages/CheckoutPage';
-import LoginPage from "./pages/Login";
-import Signup from "./pages/Signup";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import Profile from "./pages/Profile";
-import OrdersPage from "./pages/Orders";
-import Dashboard from "./pages/Dashboard";
-import AdminProducts from "./pages/AdminProducts";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminLogin from "./pages/AdminLogin";
+import { Footer } from './components/layout/footer';
+import CartPage from './screens/CartPage';
+import CheckoutPage from './screens/CheckoutPage';
+import LoginPage from "./screens/Login";
+import Signup from "./screens/Signup";
+import ForgotPassword from "./screens/ForgotPassword";
+import ResetPassword from "./screens/ResetPassword";
+import Profile from "./screens/Profile";
+import OrdersPage from "./screens/Orders";
+import Dashboard from "./screens/Dashboard";
+import AdminProducts from "./components/admin/AdminProducts";
+import AdminDashboard from "./components/admin/AdminDashboard";
+import AdminLogin from "./components/admin/AdminLogin";
 import AdminRoute from './components/AdminRoute';
 import PrivateRouter from './components/PrivateRouter';
 import { MotionConfig } from 'framer-motion';
 import { NotFound } from './components/layout/not-found';
 import { RouteEffects } from './components/layout/route-effects';
+import './styles/admin.css';
 
 function App() {
   return (
@@ -46,7 +48,7 @@ function AppContent() {
         <CartProvider>
           <StoreHydration /><div id="top" />
           <a href="#main-content" className="skip-link">Skip to content</a>
-          <Navbar />
+          {!isAdminArea && <Navbar />}
           <div id="main-content" tabIndex={-1} className="legacy-content outline-none">
           <RouteEffects />
           <Routes>
@@ -56,6 +58,7 @@ function AppContent() {
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/wishlist" element={<Wishlist />} />
             <Route element={<PrivateRouter />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/checkout" element={<CheckoutPage />} />

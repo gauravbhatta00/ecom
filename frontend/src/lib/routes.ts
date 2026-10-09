@@ -1,5 +1,6 @@
 export const routeTitles: Record<string, string> = {
   products: "Shop the collection",
+  wishlist: "Saved pieces",
   product: "Product details",
   about: "Our story",
   contact: "Contact us",
@@ -16,7 +17,7 @@ export const routeTitles: Record<string, string> = {
 };
 
 export function isLegacyRoute(pathname: string) {
-  return /^\/(?:products|about|contact|cart|checkout|dashboard|profile|orders|login|signup|forgot-password|admin(?:\/(?:login|products))?)?\/?$/.test(pathname)
+  return /^\/(?:products|wishlist|about|contact|cart|checkout|dashboard|profile|orders|login|signup|forgot-password|admin(?:\/(?:login|products))?)?\/?$/.test(pathname)
     || /^\/product\/[^/]+\/?$/.test(pathname)
     || /^\/reset-password\/[^/]+\/[^/]+\/?$/.test(pathname);
 }

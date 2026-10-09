@@ -1,7 +1,7 @@
 "use client";
 
 import { Heart, Loader2, Plus, Star } from "lucide-react";
-import { motion } from "framer-motion";
+import { QuickView } from "./quick-view";
 import { toast } from "sonner";
 import type { Product } from "@/types/product";
 import { ProductImage } from "./product-image";
@@ -24,7 +24,7 @@ export function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <motion.article className="group min-w-0" whileHover={{ y: -3 }} transition={{ duration: 0.18 }}>
+    <article className="group min-w-0">
       <div className="relative aspect-[4/5] overflow-hidden bg-muted">
         <StoreLink to={productHref(product)} className="block h-full w-full" aria-label={`View ${product.name}`}>
           <ProductImage key={product.images[0]} src={product.images[0]} alt={product.name} sizes={imageSizes}
@@ -45,6 +45,7 @@ export function ProductCard({ product }: { product: Product }) {
           className="absolute right-1 top-1 bg-background/95 sm:right-2 sm:top-2">
           <Heart className={saved ? "fill-primary text-primary" : ""} />
         </Button>
+        <QuickView product={product} />
       </div>
       <div className="pt-3 sm:pt-4">
         <p className="truncate text-[10px] uppercase tracking-[.13em] text-muted-foreground">{product.category.name}</p>
@@ -63,12 +64,12 @@ export function ProductCard({ product }: { product: Product }) {
             {product.rating !== undefined && <span className="flex items-center gap-1 text-[11px]" aria-label={`${product.rating} out of 5 stars from ${product.reviewCount || 0} reviews`}><Star size={11} className="fill-current" />{product.rating.toFixed(1)}<span className="text-muted-foreground">({product.reviewCount})</span></span>}
           </div>
         )}
-        <Button variant="outline" size="sm" className="mt-4 w-full px-2 text-[11px] sm:text-xs"
+        <Button variant="outline" className="mt-4 w-full px-2 text-[11px] sm:text-xs"
           disabled={disabled} onClick={add} aria-label={`Add ${product.name} to bag`}>
           {adding ? <Loader2 className="animate-spin" /> : <Plus />}
           {adding ? "Adding…" : product.source === "demo" ? "Preview only" : product.stock === 0 ? "Out of stock" : "Quick add"}
         </Button>
       </div>
-    </motion.article>
+    </article>
   );
 }

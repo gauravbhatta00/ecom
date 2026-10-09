@@ -8,7 +8,7 @@ export default defineConfig([
   globalIgnores(["dist/**", ".next/**", "next-env.d.ts", "node_modules/**"]),
   {
     // Existing screens migrate to Next image/link components feature by feature.
-    files: ["src/pages/**/*.jsx", "src/components/**/*.jsx", "src/ui/**/*.jsx", "src/context/**/*.jsx"],
+    files: ["src/screens/**/*.jsx", "src/components/**/*.jsx", "src/ui/**/*.jsx", "src/context/**/*.jsx"],
     rules: { "@next/next/no-img-element": "off", "@next/next/no-html-link-for-pages": "off" },
   },
 ]);

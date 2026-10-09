@@ -15,8 +15,8 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from .serializers import RegisterSerializer, UserSerializer, AdminCustomerSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer, ContactMessageSerializer
 from rest_framework import status
-from .models import Product, Category, Cart, CartItem, Order, OrderItem, UserProfile
-from .serializers import ProductSerializer, CategorySerializer, CartSerializer, CartItemSerializer,OrderItemSerializer,OrderSerializer
+from .models import Product, Category, Cart, Order, UserProfile
+from .serializers import ProductSerializer, CategorySerializer, OrderSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from urllib.request import urlopen
 import json
@@ -47,14 +47,14 @@ def admin_login(request):
 
 @api_view(['GET'])
 def get_products(request):
-    products = Product.objects.all()
+    products = Product.objects.select_related('category__parent').all()
     serializer = ProductSerializer(products, many=True, context={'request': request})
     return Response(serializer.data)
 
 @api_view(['GET'])
-def get_product(request, pk):
+def get_product(request, pk=None, slug=None):
     try:
-        product = Product.objects.get(id=pk)
+        product = Product.objects.select_related('category__parent').get(**({'slug': slug} if slug else {'id': pk}))
         serializer = ProductSerializer(product, context = {'request': request})
         return Response(serializer.data)
     except Product.DoesNotExist:
@@ -62,137 +62,10 @@ def get_product(request, pk):
 
 @api_view(['GET'])
 def get_categories(request):
-    categories = Category.objects.all()
+    categories = Category.objects.select_related('parent').all()
     serializer = CategorySerializer(categories, many=True)
     return Response(serializer.data)
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def create_category(request):
-    if not (request.user.is_staff or request.user.is_superuser):
-        return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
-    
-    try:
-        name = request.data.get('name', '').strip()
-        if not name:
-            return Response({'error': 'Category name is required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Check if category already exists
-        if Category.objects.filter(name__iexact=name).exists():
-            return Response({'error': 'Category already exists'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Create slug from name
-        from django.utils.text import slugify
-        slug = slugify(name)
-        if Category.objects.filter(slug=slug).exists():
-            slug = f"{slug}-{Category.objects.count() + 1}"
-        
-        category = Category.objects.create(name=name, slug=slug)
-        serializer = CategorySerializer(category)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
-def delete_category(request, pk):
-    if not (request.user.is_staff or request.user.is_superuser):
-        return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
-    
-    try:
-        category = Category.objects.get(id=pk)
-        # Check if category has products
-        if category.products.exists():
-            return Response(
-                {'error': 'Cannot delete category with products. Delete or reassign products first.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        category.delete()
-        return Response({'message': 'Category deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-    except Category.DoesNotExist:
-        return Response({'error': 'Category not found'}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_cart(request):
-    cart, created = Cart.objects.get_or_create(user=request.user)
-    serializer = CartSerializer(cart)
-    return Response(serializer.data)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def add_to_cart(request):
-    product_id = request.data.get('product_id')
-    product = Product.objects.get(id=product_id)
-    cart, created = Cart.objects.get_or_create(user=request.user)
-    item, created = CartItem.objects.get_or_create(cart=cart, product=product)
-    if not created:
-        item.quantity += 1
-        item.save()
-    return Response({'message': 'Product added to cart',"cart":CartSerializer(cart).data})
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def update_cart_quantity(request):
-    item_id = request.data.get('item_id')
-    quantity = request.data.get('quantity')
-    
-    if not item_id or quantity is None:
-        return Response({'error': 'Item ID and quantity are required'}, status=400)
-    
-    try:
-        item = CartItem.objects.get(id=item_id)
-        if int(quantity) < 1:
-            item.delete()
-            return Response({'error': 'Quantity must be at least 1'}, status=400)
-        
-        item.quantity = quantity
-        item.save()
-        serializer = CartItemSerializer(item)
-        return Response(serializer.data)
-    except CartItem.DoesNotExist:
-        return Response({'error': 'Cart item not found'}, status=404)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def remove_from_cart(request):
-    item_id = request.data.get('item_id')
-    CartItem.objects.filter(id=item_id).delete()
-    return Response({'message': 'Item removed from cart'})
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def create_order(request):
-    try:
-        data = request.data
-        name = data.get('name')
-        address = data.get('address')
-        phone = data.get('phone')
-        payment_method = data.get('payment_method','COD')
-
-        if not phone.isdigit() or len(phone) < 10:
-            return Response({'error': 'Invalid phone number'}, status=400)
-        
-        cart, created = Cart.objects.get_or_create(user=request.user)
-        if not cart.items.exists():
-            return Response({'error': 'Cart is empty'}, status=400)
-        
-        total = sum([item.product.price * item.quantity for item in cart.items.all()])
-        order = Order.objects.create(user=request.user, total_amount=total)
-
-        for item in cart.items.all():
-            OrderItem.objects.create(
-                order=order,
-                product=item.product,
-                quantity=item.quantity,
-                price=item.product.price
-            )
-        cart.items.all().delete()
-        return Response({'message': 'Order created successfully', 'order_id': order.id})
-    except Exception as e:
-        return Response({'error': str(e)}, status=500)
 
 def _verify_google_id_token(id_token):
     try:
@@ -380,7 +253,7 @@ def get_dashboard(request):
     
     if is_admin:
         # Admin Dashboard Data
-        products = Product.objects.all()
+        products = Product.objects.select_related('category__parent').all()
         orders = Order.objects.all().order_by('-created_at')
         
         revenue = sum(order.total_amount for order in orders)

@@ -44,7 +44,7 @@ test("live API errors never silently switch to demo products", async () => {
 test("demo products require explicit mode and never have backend IDs", async () => {
   const { load } = createSourceLoader({ mode: "demo" });
   const products = await load("lib/api/products").getProducts();
-  assert.equal(products.length, 6);
+  assert.equal(products.length, 9);
   assert.ok(products.every(product => product.source === "demo" && product.backendId === undefined));
 });
 

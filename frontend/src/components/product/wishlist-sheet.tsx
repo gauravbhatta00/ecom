@@ -17,6 +17,7 @@ export function WishlistSheet() {
       <SheetContent side="right">
         <SheetTitle className="pr-9 font-display text-3xl">Saved for later</SheetTitle>
         <SheetDescription className="mt-2 text-sm text-muted-foreground">A little collection of your favourites. Saved on this device.</SheetDescription>
+        <SheetClose asChild><StoreLink to="/wishlist" className="mt-4 inline-flex min-h-11 items-center text-sm underline">View your full edit</StoreLink></SheetClose>
         {items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 py-12 text-center"><Heart size={30} strokeWidth={1} /><h2 className="font-display text-2xl">Something caught your eye?</h2><p className="text-sm text-muted-foreground">Tap the heart on a product to keep it here.</p><SheetClose asChild><Button variant="outline">Keep exploring</Button></SheetClose></div>
         ) : <ul className="mt-6 divide-y divide-border">{items.map(item => (

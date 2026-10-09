@@ -1,4 +1,5 @@
 import { GoogleSignIn } from "./auth/google-sign-in";
+import { loginDestination } from "../lib/login-destination";
 import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Lock, LogIn, User } from "lucide-react";
@@ -16,14 +17,14 @@ export function LoginForm({ className, ...props }) {
   const handleGoogleCredential = async (response) => {
     if (!response?.credential) return;
     const success = await loginWithGoogle(response.credential);
-    if (success) navigate("/");
+    if (success) navigate(loginDestination(location.state?.from));
   };
 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const success = await login({ username, password });
-    if (success) navigate("/");
+    if (success) navigate(loginDestination(location.state?.from));
   };
 
   return (
